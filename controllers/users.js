@@ -27,7 +27,7 @@ module.exports.getUserById = async (req, res) => {
         message: 'Переданы некорректные данные пользователя.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
   }
 };
 
@@ -41,7 +41,7 @@ module.exports.createUser = async (req, res) => {
         message: 'Переданы некорректные данные при создании пользователя.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
   }
 };
 
@@ -77,7 +77,7 @@ module.exports.updateUser = async (req, res) => {
         message: 'Переданы некорректные данные при обновлении профиля.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
   }
 };
 
@@ -112,6 +112,6 @@ module.exports.updateAvatar = async (req, res) => {
         message: 'Переданы некорректные данные при обновлении аватара.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
   }
 };
