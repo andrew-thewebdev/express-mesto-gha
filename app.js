@@ -23,6 +23,10 @@ app.use((req, res, next) => {
 
 app.use(router);
 
+app.use((req, res) => {
+  res.status(404).json({ message: 'Not Found' });
+});
+
 mongoose
   .connect(MONGO_URL)
   .then(() => {
