@@ -34,7 +34,7 @@ module.exports.getUserById = async (req, res) => {
 module.exports.createUser = async (req, res) => {
   try {
     const newUser = await new User(req.body);
-    return res.status(201).send(await newUser.save());
+    return res.status(200).send(await newUser.save());
   } catch (error) {
     if (error.name === 'ValidationError') {
       return res.status(400).send({
@@ -52,7 +52,7 @@ module.exports.updateUser = async (req, res) => {
     if (!user) {
       throw new Error('NotFound');
     }
-    return res.status(201).send(
+    return res.status(200).send(
       await User.findByIdAndUpdate(
         req.user._id,
         {
@@ -88,7 +88,7 @@ module.exports.updateAvatar = async (req, res) => {
     if (!user) {
       throw new Error('NotFound');
     }
-    return res.status(201).send(
+    return res.status(200).send(
       await User.findByIdAndUpdate(
         req.user._id,
         {
