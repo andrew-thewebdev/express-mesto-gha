@@ -1,9 +1,10 @@
 const User = require('../models/User');
 
 module.exports.getUsers = (req, res) => {
+  // prettier-ignore
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'Ошибка по умолчанию.' }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 module.exports.getUserById = async (req, res) => {
@@ -27,7 +28,7 @@ module.exports.getUserById = async (req, res) => {
         message: 'Переданы некорректные данные пользователя.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
+    return res.status(500).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
@@ -41,7 +42,7 @@ module.exports.createUser = async (req, res) => {
         message: 'Переданы некорректные данные при создании пользователя.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
+    return res.status(500).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
@@ -77,7 +78,7 @@ module.exports.updateUser = async (req, res) => {
         message: 'Переданы некорректные данные при обновлении профиля.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
+    return res.status(500).send({ message: 'На сервере произошла ошибка' });
   }
 };
 
@@ -112,6 +113,6 @@ module.exports.updateAvatar = async (req, res) => {
         message: 'Переданы некорректные данные при обновлении аватара.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.' });
+    return res.status(500).send({ message: 'На сервере произошла ошибка' });
   }
 };

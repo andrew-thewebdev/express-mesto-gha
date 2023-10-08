@@ -1,10 +1,11 @@
 const Card = require('../models/Card');
 
 module.exports.getCards = (req, res) => {
+  // prettier-ignore
   Card.find({})
     .populate('owner')
     .then((cards) => res.send(cards))
-    .catch(() => res.status(500).send({ message: 'Ошибка по умолчанию.' }));
+    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
 };
 
 module.exports.createCard = async (req, res) => {
@@ -20,7 +21,9 @@ module.exports.createCard = async (req, res) => {
         message: 'Переданы некорректные данные при создании карточки.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res
+      .status(500)
+      .send({ message: 'На сервере произошла ошибка', error });
   }
 };
 
@@ -46,7 +49,9 @@ module.exports.deleteCardById = async (req, res) => {
         .status(400)
         .send({ message: 'Передан не валидный ID карточки' });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res
+      .status(500)
+      .send({ message: 'На сервере произошла ошибка', error });
   }
 };
 
@@ -79,7 +84,9 @@ module.exports.likeCard = async (req, res) => {
         message: 'Переданы некорректные данные для постановки лайка.',
       });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res
+      .status(500)
+      .send({ message: 'На сервере произошла ошибка', error });
   }
 };
 
@@ -112,6 +119,8 @@ module.exports.dislikeCard = async (req, res) => {
         .status(400)
         .send({ message: 'Переданы некорректные данные для снятии лайка.' });
     }
-    return res.status(500).send({ message: 'Ошибка по умолчанию.', error });
+    return res
+      .status(500)
+      .send({ message: 'На сервере произошла ошибка', error });
   }
 };
