@@ -1,57 +1,77 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const DuplicateError = require('../errors/DuplicateError');
+const AuthenticationError = require('../errors/AuthenticationError');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   // prettier-ignore
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.getUserById = async (req, res) => {
+module.exports.getUserById = async (req, res, next) => {
   try {
-    // const { id } = req.params;
     const user = await User.findById(req.params.id);
 
     if (!user) {
-      throw new Error('NotFound');
+      throw new NotFoundError('Пользователь по указанному _id не найден.');
     }
 
     return res.send(user);
   } catch (error) {
-    if (error.message === 'NotFound') {
-      return res
-        .status(404)
-        .send({ message: 'Пользователь по указанному _id не найден.' });
-    }
     if (error.name === 'CastError') {
-      return res.status(400).send({
-        message: 'Переданы некорректные данные пользователя.',
-      });
+      return next(
+        new BadRequestError('Переданы некорректные данные пользователя.'),
+      );
     }
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    return next(error);
   }
 };
 
-module.exports.createUser = async (req, res) => {
+const MONGO_DUPLICATE_ERROR_CODE = 11000;
+const SAULT_ROUNDS = 10;
+
+module.exports.createUser = async (req, res, next) => {
   try {
-    const newUser = await new User(req.body);
-    return res.status(200).send(await newUser.save());
+    // prettier-ignore
+    const {
+      name, about, avatar, password, email,
+    } = req.body;
+    const hash = await bcrypt.hash(password, SAULT_ROUNDS);
+    const newUser = await new User({
+      name,
+      about,
+      avatar,
+      password: hash,
+      email,
+    });
+    await newUser.save();
+    return res.status(200).send({ email: newUser.email, _id: newUser._id });
   } catch (error) {
-    if (error.name === 'ValidationError') {
-      return res.status(400).send({
-        message: 'Переданы некорректные данные при создании пользователя.',
-      });
+    if (error.code === MONGO_DUPLICATE_ERROR_CODE) {
+      return next(new DuplicateError('Такой пользователь уже существует.'));
     }
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    if (error.name === 'ValidationError') {
+      return next(
+        new BadRequestError(
+          'Переданы некорректные данные при создании пользователя.',
+        ),
+      );
+    }
+    return next(error);
   }
 };
 
-module.exports.updateUser = async (req, res) => {
+module.exports.updateUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      throw new Error('NotFound');
+      throw new NotFoundError('Пользователь c указанным _id не найден.');
     }
     return res.status(200).send(
       await User.findByIdAndUpdate(
@@ -68,26 +88,23 @@ module.exports.updateUser = async (req, res) => {
       ),
     );
   } catch (error) {
-    if (error.message === 'NotFound') {
-      return res
-        .status(404)
-        .send({ message: 'Пользователь с указанным _id не найден. ' });
-    }
     if (error.name === 'ValidationError') {
-      return res.status(400).send({
-        message: 'Переданы некорректные данные при обновлении профиля.',
-      });
+      return next(
+        new BadRequestError(
+          'Переданы некорректные данные при обновлении профиля.',
+        ),
+      );
     }
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    return next(error);
   }
 };
 
-module.exports.updateAvatar = async (req, res) => {
+module.exports.updateAvatar = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      throw new Error('NotFound');
+      throw new NotFoundError('Пользователь c указанным _id не найден.');
     }
     return res.status(200).send(
       await User.findByIdAndUpdate(
@@ -103,16 +120,58 @@ module.exports.updateAvatar = async (req, res) => {
       ),
     );
   } catch (error) {
-    if (error.message === 'NotFound') {
-      return res
-        .status(404)
-        .send({ message: 'Пользователь с указанным _id не найден. ' });
-    }
     if (error.name === 'ValidationError') {
-      return res.status(400).send({
-        message: 'Переданы некорректные данные при обновлении аватара.',
-      });
+      return next(
+        new BadRequestError(
+          'Переданы некорректные данные при обновлении аватара.',
+        ),
+      );
     }
-    return res.status(500).send({ message: 'На сервере произошла ошибка' });
+    return next(error);
+  }
+};
+
+module.exports.login = async (req, res, next) => {
+  const { password, email } = req.body;
+  try {
+    const user = await User.findOne({ email })
+      .select('+password')
+      .orFail(() => new AuthenticationError('Неправильный email или password'));
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      throw new AuthenticationError('Неправильный email или password');
+    }
+
+    const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+      expiresIn: '7d',
+    });
+
+    return res.status(200).send({ token, email: user.email });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(new BadRequestError('Переданы некорректные данные.'));
+    }
+    return next(error);
+  }
+};
+
+module.exports.getCurrentUser = async (req, res, next) => {
+  const { _id } = req.user;
+  try {
+    const user = await User.findOne({ _id }).orFail(
+      new AuthenticationError('Неправильный email или password'),
+    );
+    return res.status(200).send({
+      _id: user._id,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return next(new BadRequestError('Переданы некорректные данные.'));
+    }
+    return next(error);
   }
 };
