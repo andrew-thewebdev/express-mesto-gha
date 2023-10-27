@@ -4,12 +4,16 @@ const urlRegexp = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,3}(:\d{1,5})?([/?
 
 module.exports = {
   validateProfile: celebrate({
-    body: Joi.object().keys({
-      // name: Joi.string().default('Жак-Ив Кусто').required().min(2).max(30),
-      name: Joi.string().default('Жак-Ив Кусто').min(2).max(30),
-      about: Joi.string().default('Исследователь').min(2).max(30),
-      // avatar: Joi.string().regex(urlRegex),
-    }),
+    body: Joi.object()
+      .keys({
+        // name: Joi.string().default('Жак-Ив Кусто').required().min(2).max(30),
+        name: Joi.string().default('Жак-Ив Кусто').min(2).max(30),
+        about: Joi.string().default('Исследователь').min(2).max(30),
+        avatar: Joi.string().regex(urlRegexp),
+        email: Joi.string().required(),
+        password: Joi.string().required(),
+      })
+      .unknown(true),
   }),
   validateObjId: celebrate({
     params: Joi.object().keys({
