@@ -23,11 +23,6 @@ module.exports.getUserById = async (req, res, next) => {
 
     return res.send(user);
   } catch (error) {
-    if (error.name === 'CastError') {
-      return next(
-        new BadRequestError('Переданы некорректные данные пользователя.'),
-      );
-    }
     return next(error);
   }
 };
@@ -50,7 +45,12 @@ module.exports.createUser = async (req, res, next) => {
       email,
     });
     await newUser.save();
-    return res.status(200).send({ email: newUser.email, _id: newUser._id });
+    return res.status(200).send({
+      email: newUser.email,
+      name: newUser.name,
+      about: newUser.about,
+      avatar: newUser.avatar,
+    });
   } catch (error) {
     if (error.code === MONGO_DUPLICATE_ERROR_CODE) {
       return next(new DuplicateError('Такой пользователь уже существует.'));
