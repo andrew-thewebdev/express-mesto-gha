@@ -5,8 +5,8 @@ const urlRegexp = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,3}(:\d{1,5})?([/?
 module.exports = {
   validateCard: celebrate({
     body: Joi.object().keys({
-      name: Joi.string().min(2).max(30),
-      link: Joi.string().regex(urlRegexp),
+      name: Joi.string().required().min(2).max(30),
+      link: Joi.string().required().regex(urlRegexp),
     }),
   }),
   validateCardId: celebrate({

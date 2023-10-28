@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(bodyParser.json());
 
-app.post('/signin', login);
+app.post('/signin', validateProfile, login);
 // app.post('/signup', createUser);
 app.post('/signup', validateProfile, createUser);
 
