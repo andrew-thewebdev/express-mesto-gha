@@ -43,7 +43,6 @@ const userSchema = new mongoose.Schema({
       value: true,
       message: 'Поле email является обязательным.',
     },
-    minlength: 2,
     select: false,
   },
 });
